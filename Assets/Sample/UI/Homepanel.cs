@@ -12,7 +12,7 @@ public class Homepanel : TTUIPage {
         uiPath = "UIPrefab/Homepanel";
     }
 
-    public delegate void Slid(Vector3 ve);
+    public delegate void Slid(Vector3 ve,bool isrewind);
     public delegate void Callback(GameObject g,bool iscallback,int calltemp);
     public Slid sli;
     public Callback call;
@@ -24,7 +24,7 @@ public class Homepanel : TTUIPage {
     public GameObject panelshow0, Panel_bottom;
     public GameObject show0Items,bottomItems;
 	UDSkill skillData;
-
+    float lerptimer = 0.25f;
 
     public override void Awake(GameObject go)
     {
@@ -70,7 +70,6 @@ public class Homepanel : TTUIPage {
             //+ "show0Items.transform.GetComponent<RectTransform>().rect.size.x" + show0Items.transform.GetComponent<RectTransform>().rect.size.x);
         for (int i = 0; i < homepItems; i++)
         {
-			
             GameObject go = GameObject.Instantiate(prefab) as GameObject;
             go.SetActive(true);
             go.transform.SetParent(parent.transform);
@@ -90,7 +89,7 @@ public class Homepanel : TTUIPage {
                 rect.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 0, prefab.GetComponent<RectTransform>().sizeDelta.x);/*相对父节点左端对齐，相对距离，宽度*/
                 rect.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, 0, prefab.GetComponent<RectTransform>().sizeDelta.y);/*相对父节点上端对齐，相对距离，高度*/
                 go.AddComponent<Button>().onClick.AddListener(delegate() { LimitItems(go); });
-//				Debug.Log (go.name);
+                //Debug.Log (go.name);
 				go.transform.FindChild("TextUp").GetComponent<Image>().overrideSprite =  PageImage()[i];
 //				Debug.Log (go.GetComponentInChildren<Text> ().text);
 				go.GetComponentInChildren<Text> ().text = skillData.skills [i].name;
@@ -135,7 +134,7 @@ public class Homepanel : TTUIPage {
 		 spr = new Sprite[homepItems];
 			for (int i = 0; i < homepItems; i++) 
 			{
-				spr[i]=Resources.Load("card_bg_big_"+i, typeof(Sprite)) as Sprite;
+			//	spr[i]=Resources.Load("card_bg_big_"+i, typeof(Sprite)) as Sprite;
 			}
 		}
 		return spr;
@@ -143,7 +142,7 @@ public class Homepanel : TTUIPage {
 
 
    	public GameObject choise ;
-    float shortbottem,topitemslength;
+    public float shortbottem, topitemslength;
 	Vector3 childoldpos;
 
     void LimitItems(GameObject cureentselect,bool iscall = false,int calltemp=0) 
@@ -158,7 +157,8 @@ public class Homepanel : TTUIPage {
             {
 				if (bottomitems.IndexOf(choise) ==homepItems-1)
 				{
-					if (calltemp < 0) {
+					if (calltemp < 0) 
+                    {
 						cureentselect = bottomitems [bottomitems.IndexOf (choise) + calltemp];
 
 					}
@@ -198,19 +198,19 @@ public class Homepanel : TTUIPage {
                     {
 					rect.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, rect.transform.localPosition.x,shortbottem + offsett);
                         temp = i;
-					bottomitems[i].transform.FindChild("TextUp").transform.DOLocalMove(new Vector3(childoldpos.x+offsett/2,childoldpos.y+120,childoldpos.z),0.25f);
-					bottomitems [i].transform.FindChild("TextUp").transform.DOScale (new Vector3(1.2f,1.2f,1.2f),0.25f);
-					bottomitems [i].transform.FindChild ("TextDown").transform.DOScale (Vector3.one,0.25f);
-					bottomitems [i].transform.FindChild ("Left").transform.DOScale (Vector3.one, 0.25f);
+					bottomitems[i].transform.FindChild("TextUp").transform.DOLocalMove(new Vector3(childoldpos.x+offsett/2,childoldpos.y+120,childoldpos.z),lerptimer);
+					bottomitems [i].transform.FindChild("TextUp").transform.DOScale (new Vector3(1.2f,1.2f,1.2f),lerptimer);
+					bottomitems [i].transform.FindChild ("TextDown").transform.DOScale (Vector3.one,lerptimer);
+					bottomitems [i].transform.FindChild ("Left").transform.DOScale (Vector3.one, lerptimer);
 				//	bottomitems [i].transform.FindChild ("Left").transform.DOShakePosition(1f,new Vector3(10,0,0));
                     }
                     else {
 
                     rect.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, rect.transform.localPosition.x, shortbottem);
-					bottomitems[i].transform.FindChild("TextUp").transform.DOLocalMove(childoldpos,0.25f);
-					bottomitems [i].transform.FindChild("TextUp").transform.DOScale (new Vector3(0.8f,0.8f,0.8f),0.25f);
-					bottomitems [i].transform.FindChild ("TextDown").transform.DOScale (Vector3.zero,0.25f);
-					bottomitems [i].transform.FindChild ("Left").transform.DOScale (Vector3.zero, 0.25f);
+					bottomitems[i].transform.FindChild("TextUp").transform.DOLocalMove(childoldpos,lerptimer);
+					bottomitems [i].transform.FindChild("TextUp").transform.DOScale (new Vector3(0.8f,0.8f,0.8f),lerptimer);
+					bottomitems [i].transform.FindChild ("TextDown").transform.DOScale (Vector3.zero,lerptimer);
+					bottomitems [i].transform.FindChild ("Left").transform.DOScale (Vector3.zero, lerptimer);
                     }
                 }
                 for (int i =0; i < bottomitems.Count; i++)
@@ -234,10 +234,11 @@ public class Homepanel : TTUIPage {
                 {
                     if (topitems[i].Equals(TopBottom[cureentselect]))
                     {
-                        //TopBottom[cureentselect].transform.localPosition = Vector3.zero;
+                        tempdestination.Clear();
                         for (int j = 0; j < topitems.Count; j++)
                         {
-                            topitems[j].transform.DOLocalMove(new Vector3((j - i) * topitemslength, 0f, 0f), 0.25f, false);
+                            tempdestination.Add(new Vector3((j - i) * topitemslength, 0f, 0f));
+                            topitems[j].transform.DOLocalMove(new Vector3((j - i) * topitemslength, 0f, 0f), lerptimer, false);
                          //   topitems[j].transform.localPosition = new Vector3((j-i)*topitemslength,0f,0f);
                         }
                         break;
@@ -247,11 +248,60 @@ public class Homepanel : TTUIPage {
         choise = cureentselect;
     }
 
-    void SlidTochange(Vector3 ve) 
+    List<Vector3> tempdestination = new List<Vector3>();
+
+    void SlidTochange(Vector3 ve,bool isback) 
     {
-        for (int j = 0; j < topitems.Count; j++)
+        if (bottomitems.IndexOf(choise) != 0 && bottomitems.IndexOf(choise) != 4)
         {
-            topitems[j].transform.DOLocalMove(new Vector3(topitems[j].transform.localPosition.x+ve.x,0f,0f), 0.25f, false);
+            //Debug.Log("IFIFIIFIFIFIFIFIF");
+            if (!isback)
+            {
+                for (int j = 0; j < topitems.Count; j++)
+                {
+                    //Debug.Log("topitems[j].transform.localPosition.x==" + topitems[j].transform.localPosition.x + "ve.x==" + ve.x);
+                    topitems[j].transform.DOLocalMove(new Vector3(topitems[j].transform.localPosition.x + ve.x, 0f, 0f), lerptimer, false);
+                }
+
+            }
+            else
+            {
+                for (int i = 0; i < tempdestination.Count; i++)
+                {
+                    //Debug.Log(">>>>>>>>>>>>>>>>>>>"+tempdestination[i]);
+                    topitems[i].transform.DOLocalMove(tempdestination[i], lerptimer, false);
+                }
+            }
+        }
+        else {
+            //Debug.Log("ELSEELSEELSE");
+            if (!isback)
+            {
+                if ((bottomitems.IndexOf(choise) == 0 && ve.x > 0) || (bottomitems.IndexOf(choise) == 4 && ve.x < 0))
+                {
+                    for (int j = 0; j < topitems.Count; j++)
+                    {
+                        //Debug.Log("topitems[j].transform.localPosition.x==" + topitems[j].transform.localPosition.x + "ve.x==" + ve.x);
+                        topitems[j].transform.DOLocalMove(new Vector3(topitems[j].transform.localPosition.x + (ve.x) / 20, 0f, 0f), lerptimer, false);
+                    }
+                }
+                else {
+                    for (int j = 0; j < topitems.Count; j++)
+                    {
+                        //Debug.Log("topitems[j].transform.localPosition.x==" + topitems[j].transform.localPosition.x + "ve.x==" + ve.x);
+                        topitems[j].transform.DOLocalMove(new Vector3(topitems[j].transform.localPosition.x + ve.x, 0f, 0f), lerptimer, false);
+                    }             
+                }
+            }
+            else
+            {
+                for (int i = 0; i < tempdestination.Count; i++)
+                {
+                    //Debug.Log(">>>>>>>>>>>>>>>>>>>"+tempdestination[i]);
+                    topitems[i].transform.DOLocalMove(tempdestination[i], lerptimer, false);
+                }
+            }
+
         }
     }
 

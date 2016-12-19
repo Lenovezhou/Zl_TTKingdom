@@ -11,14 +11,9 @@ using System.Security.AccessControl;
  *  重写Awake（）方法，为子节点添加事件
  */
 public class GameMain : MonoBehaviour {
-
-
-		
-
 	// Use this for initialization
 	void Start () {
         TTUIPage.ShowPage<Homepanel>();
-
         //TTUIPage.ShowPage<UITopBar>();
         //TTUIPage.ShowPage<UIMainPage>();
         //TTUIPage.ShowPage<thisShow>();
